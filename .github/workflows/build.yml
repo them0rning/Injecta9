@@ -23,11 +23,10 @@ jobs:
       - name: Install Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git /home/runner/theos
-          ls /home/runner/theos/makefiles/
 
       - name: Install SDK
         run: |
-          curl -fsSL https://github.com/theos/sdks/releases/download/2024-09-06/iPhoneOS16.5.sdk.tar.xz -o /tmp/sdk.tar.xz
+          curl -fsSL https://github.com/theos/sdks/releases/download/2023-11-23/iPhoneOS16.5.sdk.tar.xz -o /tmp/sdk.tar.xz
           tar -xJf /tmp/sdk.tar.xz -C /home/runner/theos/sdks/
 
       - name: Install ldid
@@ -42,9 +41,4 @@ jobs:
           export PATH="$THEOS/bin:$PATH"
           make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
 
-      - name: Upload .deb
-        uses: actions/upload-artifact@v4
-        with:
-          name: CamSpoof-deb
-          path: packages/*.deb
-          if-no-files-found: error
+      - name: Uplo
