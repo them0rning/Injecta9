@@ -15,12 +15,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -q -y git curl xz-utils fakeroot dpkg-dev build-essential
+
       - name: Install Theos
-        uses: Randomblock1/theos-action@v1
+        run: |
+          git clone --recursive https://github.com/theos/theos.git /home/runner/theos
+          ls /home/runner/theos/makefiles/
+
+      - name: Install SDK
+        run: |
+          curl -fsSL https://github.com/theos/sdks/releases/download/2024-09-06/iPhoneOS16.5.sdk.tar.xz -o /tmp/sdk.tar.xz
+          tar -xJf /tmp/sdk.tar.xz -C /home/runner/theos/sdks/
+
+      - name: Install ldid
+        run: |
+          curl -fsSL https://github.com/theos/ldid/releases/latest/download/ldid_linux-x86_64 -o /home/runner/theos/bin/ldid
+          chmod +x /home/runner/theos/bin/ldid
 
       - name: Build .deb
         run: |
-          make package THEOS=/home/runner/theos FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+          export THEOS=/home/runner/theos
+          export THEOS_MAKE_PATH=$THEOS/makefiles
+          export PATH="$THEOS/bin:$PATH"
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
 
       - name: Upload .deb
         uses: actions/upload-artifact@v4
