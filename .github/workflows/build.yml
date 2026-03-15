@@ -26,7 +26,12 @@ jobs:
 
       - name: Install SDK
         run: |
-          curl -fsSL https://github.com/theos/sdks/releases/download/2023-11-23/iPhoneOS16.5.sdk.tar.xz -o /tmp/sdk.tar.xz
+          SDK_URL=$(curl -s https://api.github.com/repos/theos/sdks/releases/latest \
+            | grep "browser_download_url" \
+            | grep "iPhoneOS16.5" \
+            | cut -d '"' -f 4)
+          echo "Downloading SDK from: $SDK_URL"
+          curl -fsSL "$SDK_URL" -o /tmp/sdk.tar.xz
           tar -xJf /tmp/sdk.tar.xz -C /home/runner/theos/sdks/
 
       - name: Install ldid
