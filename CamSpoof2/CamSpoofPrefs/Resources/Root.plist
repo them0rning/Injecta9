@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>title</key>
+    <string>CamSpoof</string>
+    <key>items</key>
+    <array>
+
+        <!-- ── MAIN TOGGLE ──────────────────────────────────── -->
+        <dict>
+            <key>cell</key>
+            <string>PSGroupCell</string>
+            <key>footerText</key>
+            <string>When enabled, all camera capture in every app will return the fake photo below instead of the real camera.</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSSwitchCell</string>
+            <key>label</key>
+            <string>Enable Fake Picture Taking</string>
+            <key>key</key>
+            <string>enabled</string>
+            <key>default</key>
+            <false/>
+            <key>defaults</key>
+            <string>com.yourname.camspoof</string>
+            <key>PostNotification</key>
+            <string>com.yourname.camspoof/settingsChanged</string>
+        </dict>
+
+        <!-- ── PHOTO PICKER ─────────────────────────────────── -->
+        <dict>
+            <key>cell</key>
+            <string>PSGroupCell</string>
+            <key>label</key>
+            <string>Fake Photo</string>
+            <key>footerText</key>
+            <string>Pick any photo from your library. This will be what every app's camera "takes".</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSButtonCell</string>
+            <key>label</key>
+            <string>Choose Photo…</string>
+            <key>action</key>
+            <string>choosePhoto</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSButtonCell</string>
+            <key>label</key>
+            <string>Clear Photo</string>
+            <key>action</key>
+            <string>clearPhoto</string>
+        </dict>
+
+        <!-- ── INFO ─────────────────────────────────────────── -->
+        <dict>
+            <key>cell</key>
+            <string>PSGroupCell</string>
+            <key>label</key>
+            <string>About</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSStaticTextCell</string>
+            <key>label</key>
+            <string>CamSpoof v1.0</string>
+        </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSStaticTextCell</string>
+            <key>label</key>
+            <string>Hooks AVCapturePhoto, UIImagePickerController &amp; AVCaptureStillImageOutput — covers all apps.</string>
+        </dict>
+
+    </array>
+</dict>
+</plist>
