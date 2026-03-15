@@ -3,10 +3,8 @@
 #import <CoreMedia/CoreMedia.h>
 #import <CoreVideo/CoreVideo.h>
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-#define kPrefDomain    CFSTR("com.yourname.camspoof")
 #define kFakePhotoPath @"/var/mobile/Library/Application Support/CamSpoof/fake_photo.jpg"
+#define kPrefDomain CFSTR("com.yourname.camspoof")
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -17,7 +15,6 @@ static BOOL isEnabled(void) {
     return exists ? (BOOL)val : NO;
 }
 
-// Loads the fake photo, caches it in memory until the file changes on disk
 static UIImage *getFakeImage(void) {
     static UIImage *cached = nil;
     static NSDate  *cachedMod = nil;
@@ -34,12 +31,10 @@ static UIImage *getFakeImage(void) {
     return cached;
 }
 
-// ─── Hook 1: AVCapturePhoto ───────────────────────────────────────────────────
-// Modern path — iOS 11+ apps (Instagram, Snapchat, Camera.app, etc.)
+// ─── Hook 1: AVCapturePhoto (iOS 11+ modern path) ─────────────────────────────
 
 %hook AVCapturePhoto
 
-// The JPEG/HEIC blob handed to the app after capture
 - (NSData *)fileDataRepresentation {
     if (!isEnabled()) return %orig;
     UIImage *fake = getFakeImage();
@@ -47,14 +42,12 @@ static UIImage *getFakeImage(void) {
     return UIImageJPEGRepresentation(fake, 0.95f) ?: %orig;
 }
 
-// CGImage version used by apps that do their own image processing
 - (CGImageRef)CGImageRepresentation {
     if (!isEnabled()) return %orig;
     UIImage *fake = getFakeImage();
     return fake ? fake.CGImage : %orig;
 }
 
-// Thumbnail shown in the camera shutter animation
 - (CGImageRef)previewCGImageRepresentation {
     if (!isEnabled()) return %orig;
     UIImage *fake = getFakeImage();
@@ -63,19 +56,17 @@ static UIImage *getFakeImage(void) {
 
 %end
 
-// ─── Hook 2: UIImagePickerController ─────────────────────────────────────────
-// Older / simpler apps that use the built-in camera overlay
+// ─── Hook 2: UIImagePickerController (older apps) ─────────────────────────────
 
 %hook UIImagePickerController
 
 - (void)takePicture {
     if (!isEnabled()) { %orig; return; }
     UIImage *fake = getFakeImage();
-    if (!fake)        { %orig; return; }
+    if (!fake) { %orig; return; }
 
     id<UIImagePickerControllerDelegate> del = self.delegate;
-    if (![del respondsToSelector:
-            @selector(imagePickerController:didFinishPickingMediaWithInfo:)]) {
+    if (![del respondsToSelector:@selector(imagePickerController:didFinishPickingMediaWithInfo:)]) {
         %orig; return;
     }
 
@@ -91,8 +82,10 @@ static UIImage *getFakeImage(void) {
 
 %end
 
-// ─── Hook 3: AVCaptureStillImageOutput ───────────────────────────────────────
-// Legacy path — pre-iOS 10 style apps
+// ─── Hook 3: AVCaptureStillImageOutput (legacy pre-iOS 10 apps) ───────────────
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 %hook AVCaptureStillImageOutput
 
@@ -100,14 +93,13 @@ static UIImage *getFakeImage(void) {
                                     completionHandler:(void (^)(CMSampleBufferRef, NSError *))handler {
     if (!isEnabled()) { %orig(connection, handler); return; }
     UIImage *fake = getFakeImage();
-    if (!fake)        { %orig(connection, handler); return; }
+    if (!fake) { %orig(connection, handler); return; }
 
     NSData *jpeg = UIImageJPEGRepresentation(fake, 0.95f);
 
     CMBlockBufferRef  blockBuffer  = NULL;
     CMSampleBufferRef sampleBuffer = NULL;
 
-    // Wrap the JPEG bytes in a CMBlockBuffer
     OSStatus s = CMBlockBufferCreateWithMemoryBlock(
         kCFAllocatorDefault,
         (void *)jpeg.bytes, jpeg.length,
@@ -148,10 +140,11 @@ static UIImage *getFakeImage(void) {
 
 %end
 
+#pragma clang diagnostic pop
+
 // ─── Constructor ──────────────────────────────────────────────────────────────
 
 %ctor {
-    // Create storage folder at tweak load time
     [[NSFileManager defaultManager]
         createDirectoryAtPath:@"/var/mobile/Library/Application Support/CamSpoof"
   withIntermediateDirectories:YES
