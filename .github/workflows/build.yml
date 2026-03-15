@@ -1,0 +1,73 @@
+name: Build CamSpoof
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -q -y \
+            build-essential \
+            curl \
+            libxml2 \
+            xz-utils \
+            zip \
+            git \
+            rsync \
+            fakeroot \
+            dpkg-dev
+
+      - name: Cache Theos
+        id: theos-cache
+        uses: actions/cache@v4
+        with:
+          path: /opt/theos
+          key: theos-linux-v4
+
+      - name: Install Theos
+        if: steps.theos-cache.outputs.cache-hit != 'true'
+        run: |
+          export THEOS=/opt/theos
+          sudo mkdir -p $THEOS
+          sudo chown $USER:$USER $THEOS
+          git clone --recursive https://github.com/theos/theos.git $THEOS
+          curl -fsSL https://github.com/theos/sdks/releases/download/main/iPhoneOS16.5.sdk.tar.xz \
+            | tar -xJf - -C $THEOS/sdks/
+
+      - name: Install SDK if missing
+        run: |
+          if [ ! -d /opt/theos/sdks/iPhoneOS16.5.sdk ]; then
+            curl -fsSL https://github.com/theos/sdks/releases/download/main/iPhoneOS16.5.sdk.tar.xz \
+              | tar -xJf - -C /opt/theos/sdks/
+          fi
+
+      - name: Install ldid
+        run: |
+          curl -fsSL https://github.com/theos/ldid/releases/latest/download/ldid_linux-x86_64 \
+            -o /opt/theos/bin/ldid
+          chmod +x /opt/theos/bin/ldid
+
+      - name: Build .deb
+        run: |
+          export THEOS=/opt/theos
+          export PATH="$THEOS/bin:$PATH"
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+
+      - name: Upload .deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: CamSpoof-deb
+          path: packages/*.deb
+          if-no-files-found: error
