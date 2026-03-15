@@ -9,7 +9,7 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = CamSpoof
 CamSpoof_FILES = Tweak.x
-CamSpoof_CFLAGS = -fobjc-arc -Wno-unused-variable
+CamSpoof_CFLAGS = -fobjc-arc -Wno-unused-variable -Wno-deprecated-declarations
 CamSpoof_FRAMEWORKS = UIKit AVFoundation CoreMedia CoreVideo Photos PhotosUI
 
 include $(THEOS_MAKE_PATH)/tweak.mk
