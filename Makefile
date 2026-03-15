@@ -1,3 +1,4 @@
+THEOS ?= /home/runner/theos
 THEOS_PACKAGE_SCHEME = rootless
 ARCHS = arm64 arm64e
 TARGET = iphone:clang:16.5:14.0
