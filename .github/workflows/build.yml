@@ -15,39 +15,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -q -y git curl xz-utils fakeroot dpkg-dev build-essential lzma libncurses5
-
-      - name: Install ldid
-        uses: MOZGIII/install-ldid-action@v1
-        with:
-          tag: v2.1.5-procursus2
-
       - name: Install Theos
-        run: |
-          git clone --recursive https://github.com/theos/theos.git /home/runner/theos
-
-      - name: Install Toolchain
-        run: |
-          curl -LO https://github.com/sbingner/llvm-project/releases/latest/download/linux-ios-arm64e-clang-toolchain.tar.lzma
-          TMP=$(mktemp -d)
-          tar --lzma -xf linux-ios-arm64e-clang-toolchain.tar.lzma -C $TMP
-          mkdir -p /home/runner/theos/toolchain/linux/iphone
-          mv $TMP/ios-arm64e-clang-toolchain/* /home/runner/theos/toolchain/linux/iphone/
-          rm -rf $TMP linux-ios-arm64e-clang-toolchain.tar.lzma
-
-      - name: Install SDK
-        run: |
-          curl -fsSL https://github.com/theos/sdks/releases/download/2022-10-10/iPhoneOS15.5.sdk.tar.xz -o /tmp/sdk.tar.xz
-          tar -xJf /tmp/sdk.tar.xz -C /home/runner/theos/sdks/
+        uses: Randomblock1/theos-action@v1
+        with:
+          theos-dir: /home/runner/theos
 
       - name: Build .deb
         run: |
           export THEOS=/home/runner/theos
           export THEOS_MAKE_PATH=$THEOS/makefiles
-          export PATH="$THEOS/bin:$THEOS/toolchain/linux/iphone/bin:$PATH"
+          export PATH="$THEOS/bin:$PATH"
           make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
 
       - name: Upload .deb
