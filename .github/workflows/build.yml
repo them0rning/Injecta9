@@ -29,6 +29,11 @@ jobs:
         run: |
           git clone --recursive https://github.com/theos/theos.git /home/runner/theos
 
+      - name: Install iOS Toolchain
+        run: |
+          curl -fsSL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/ios-toolchain-ubuntu22.tar.gz -o /tmp/toolchain.tar.gz
+          tar -xzf /tmp/toolchain.tar.gz -C /home/runner/theos/toolchain/
+
       - name: Install SDK
         run: |
           SDK_URL=$(curl -s https://api.github.com/repos/theos/sdks/releases/latest \
@@ -43,7 +48,7 @@ jobs:
         run: |
           export THEOS=/home/runner/theos
           export THEOS_MAKE_PATH=$THEOS/makefiles
-          export PATH="$THEOS/bin:/usr/local/bin:$PATH"
+          export PATH="$THEOS/bin:$THEOS/toolchain/linux/iphone/bin:$PATH"
           make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
 
       - name: Upload .deb
