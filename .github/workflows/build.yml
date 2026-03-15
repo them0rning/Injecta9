@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update -q
-          sudo apt-get install -q -y git curl xz-utils fakeroot dpkg-dev build-essential
+          sudo apt-get install -q -y git curl xz-utils fakeroot dpkg-dev build-essential lzma
 
       - name: Install ldid
         uses: MOZGIII/install-ldid-action@v1
@@ -29,10 +29,14 @@ jobs:
         run: |
           git clone --recursive https://github.com/theos/theos.git /home/runner/theos
 
-      - name: Install iOS Toolchain
+      - name: Install Toolchain
         run: |
-          curl -fsSL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/ios-toolchain-ubuntu22.tar.gz -o /tmp/toolchain.tar.gz
-          tar -xzf /tmp/toolchain.tar.gz -C /home/runner/theos/toolchain/
+          curl -LO https://github.com/sbingner/llvm-project/releases/latest/download/linux-ios-arm64e-clang-toolchain.tar.lzma
+          TMP=$(mktemp -d)
+          tar --lzma -xf linux-ios-arm64e-clang-toolchain.tar.lzma -C $TMP
+          mkdir -p /home/runner/theos/toolchain/linux/iphone
+          mv $TMP/ios-arm64e-clang-toolchain/* /home/runner/theos/toolchain/linux/iphone/
+          rm -rf $TMP linux-ios-arm64e-clang-toolchain.tar.lzma
 
       - name: Install SDK
         run: |
